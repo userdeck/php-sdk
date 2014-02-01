@@ -1,32 +1,33 @@
-<?php namespace Userdeck;
+<?php
 
 /**
- * Main API client.
+ * Main UserDeck API client.
  */
-class Client
+class UserDeck
 {
 	public $api_url = 'https://api.userdeck.com';
 	protected $consumer_key;
 	protected $consumer_secret;
 	protected $access_token;
+	protected $session;
 	
 	/**
-	 * Create a new Userdeck Client.
+	 * Create a new UserDeck Client.
 	 *
 	 * @param string $consumer_key
 	 * @param string $consumer_secret
 	 * @param string $api_url
 	 * 
-	 * @return Client
+	 * @return UserDeck
 	 */
-	public function __construct($consumer_key, $consumer_secret, $api_url = null)
+	public function __construct($consumer_key = null, $consumer_secret = null)
 	{
 		$this->consumer_key    = $consumer_key;
 		$this->consumer_secret = $consumer_secret;
 		
-		if ($api_url) {
-			$this->api_url = $api_url;
-		}
+		$driver = new UserDeck\Cookie();
+		$driver->setPrefix('ud_');
+		$this->setSessionDriver($driver);
 	}
 	
 	/**
@@ -34,7 +35,7 @@ class Client
 	 *
 	 * @param string $access_token
 	 * 
-	 * @return Client
+	 * @return UserDeck
 	 */
 	public function setAccessToken($access_token)
 	{
@@ -44,22 +45,131 @@ class Client
 	}
 	
 	/**
-	 * Fetch an OAuth access token.
+	 * Getter for the OAuth access token.
 	 *
-	 * @param array  $params  The parameters to send with the request.
-	 * @param array  $options The options to use to build the request.
-	 * 
-	 * @return array
-	 * @throws Exception
+	 * @return string|null
 	 */
-	public function getAccessToken(array $params = array(), array $options = array())
+	public function getAccessToken()
 	{
-		$params = array_merge(array(
-			'client_id'     => $this->consumer_key,
-			'client_secret' => $this->consumer_secret,
-		), $params);
+		if (null === $this->access_token) {
+			if ($token = $this->session->get('token')) {
+				$this->setAccessToken($token['access_token']);
+			}
+		}
 		
-		return $this->api('oauth/access_token', 'post', $params, $options);
+		return $this->access_token;
+	}
+	
+	/**
+	 * Getter for the OAuth access token info array.
+	 *
+	 * @return array|null
+	 */
+	public function getAccessTokenInfo()
+	{
+		return $this->session->get('token');
+	}
+	
+	/**
+	 * Fetch an OAuth access token.
+	 * NOTE: Only available to clients with the 'password' grant type enabled.
+	 *
+	 * @param string $email    User email address.
+	 * @param string $password User password.
+	 * @param array  $options  The options to use to build the request.
+	 * 
+	 * @return UserDeck
+	 * @throws UserDeck\Exception
+	 */
+	public function login($email, $password, array $options = array())
+	{
+		$this->logout();
+		
+		$token = $this->post('oauth/access_token', array(
+			'grant_type' => 'password',
+			'username'   => $email,
+			'password'   => $password,
+		), $options);
+		
+		$this->session->put('token', $token);
+		
+		return $this;
+	}
+	
+	/**
+	 * Log the current user out. Remove from session.
+	 *
+	 * @return void
+	 * @throws UserDeck\Exception
+	 */
+	public function logout()
+	{
+		$this->session->forget('token');
+		$this->access_token = null;
+	}
+	
+	/**
+	 * Attempt to refresh the current login's access_token.
+	 *
+	 * @param array $options The options to use to build the request.
+	 * 
+	 * @return bool
+	 */
+	public function refreshLoginToken(array $options = array())
+	{
+		$token = $this->session->get('token');
+		if (!$token) {
+			return false;
+		}
+		
+		if (!isset($token['refresh_token'])) {
+			return false;
+		}
+		
+		$refresh_token = $token['refresh_token'];
+		$options['no_access_token'] = true;
+		
+		try {
+			$new_token = $this->post('oauth/access_token', array(
+				'grant_type'    => 'refresh_token',
+				'refresh_token' => $refresh_token,
+			), $options);
+		} catch (Exception $e) {
+			return false;
+		}
+		
+		if (!isset($new_token['refresh_token'])) {
+			$new_token['refresh_token'] = $refresh_token;
+		}
+		
+		$this->access_token = null;
+		$this->session->put('token', $new_token);
+		
+		return true;
+	}
+	
+	/**
+	 * Set the session driver for this instance.
+	 *
+	 * @param UserDeck\SessionInterface $driver Session driver instance.
+	 * 
+	 * @return UserDeck
+	 */
+	public function setSessionDriver(UserDeck\SessionInterface $driver)
+	{
+		$this->session = $driver;
+		
+		return $this;
+	}
+	
+	/**
+	 * Getter for the current session driver instance.
+	 *
+	 * @return UserDeck\SessionInterface
+	 */
+	public function getSessionDriver()
+	{
+		return $this->session;
 	}
 	
 	/**
@@ -70,9 +180,9 @@ class Client
 	 * @param array  $options  The options to use to build the request.
 	 * 
 	 * @return array
-	 * @throws Exception
+	 * @throws UserDeck\Exception
 	 */
-	public function get($resource = '', array $params = array(), $options = array())
+	public function get($resource = '', array $params = array(), array $options = array())
 	{
 		return $this->api($resource, 'get', $params, $options);
 	}
@@ -85,9 +195,9 @@ class Client
 	 * @param array  $options  The options to use to build the request.
 	 * 
 	 * @return array
-	 * @throws Exception
+	 * @throws UserDeck\Exception
 	 */
-	public function post($resource = '', array $params = array(), $options = array())
+	public function post($resource = '', array $params = array(), array $options = array())
 	{
 		return $this->api($resource, 'post', $params, $options);
 	}
@@ -100,9 +210,9 @@ class Client
 	 * @param array  $options  The options to use to build the request.
 	 * 
 	 * @return array
-	 * @throws Exception
+	 * @throws UserDeck\Exception
 	 */
-	public function put($resource = '', array $params = array(), $options = array())
+	public function put($resource = '', array $params = array(), array $options = array())
 	{
 		return $this->api($resource, 'put', $params, $options);
 	}
@@ -115,9 +225,9 @@ class Client
 	 * @param array  $options  The options to use to build the request.
 	 * 
 	 * @return array
-	 * @throws Exception
+	 * @throws UserDeck\Exception
 	 */
-	public function delete($resource = '', array $params = array(), $options = array())
+	public function delete($resource = '', array $params = array(), array $options = array())
 	{
 		return $this->api($resource, 'delete', $params, $options);
 	}
@@ -131,11 +241,24 @@ class Client
 	 * @param array  $options  The options to use to build the request.
 	 * 
 	 * @return array
-	 * @throws Exception
+	 * @throws UserDeck\Exception
 	 */
 	public function api($resource = '', $method = 'get', array $params = array(), array $options = array())
 	{
-		return $this->makeRequest($resource, $method, $params, $options);
+		try {
+			$response = $this->makeRequest($resource, $method, $params, $options);
+		} catch (Exception $e) {
+			// Check for token expiration. Refresh and try again, if possible.
+			if ($this->session->has('token') && 401 == $e->getCode()) {
+				if ($this->refreshLoginToken()) {
+					return $this->makeRequest($resource, $method, $params, $options);
+				}
+			}
+			
+			throw $e;
+		}
+		
+		return $response;
 	}
 	
 	/**
@@ -147,12 +270,12 @@ class Client
 	 * @param array  $options  The options to use to build the request.
 	 * 
 	 * @return array
-	 * @throws Exception
+	 * @throws UserDeck\Exception
 	 */
 	protected function makeRequest($resource = '', $method = 'get', array $params = array(), array $options = array())
 	{
 		if (!function_exists('curl_init')) {
-			throw new Exception(
+			throw new UserDeck\Exception(
 				'Your PHP installation doesn\'t have cURL enabled. Rebuild PHP with --with-curl'
 			);
 		}
@@ -160,6 +283,23 @@ class Client
 		$method = strtoupper($method);
 		
 		$url = rtrim($this->api_url, '/') . '/' . trim($resource, '/');
+		
+		$headers = array(
+			'Accept' => 'application/json',
+		);
+		
+		$access_token = $this->getAccessToken();
+		if (!empty($access_token) && empty($options['no_access_token'])) {
+			$headers['Authorization'] = "Bearer {$access_token}";
+		}
+		else if (!empty($this->consumer_key) && !empty($this->consumer_secret)) {
+			$params['client_id'] = $this->consumer_key;
+			$params['client_secret'] = $this->consumer_secret;
+		}
+		
+		if (isset($options['no_access_token'])) {
+			unset($options['no_access_token']);
+		}
 		
 		if (!empty($params)) {
 			if ($method == 'GET') {
@@ -179,14 +319,6 @@ class Client
 		}
 		
 		$connection = curl_init($url);
-		
-		$headers = array(
-			'Accept' => 'application/json',
-		);
-		
-		if (!empty($this->access_token)) {
-			$headers['Authorization'] = "Bearer {$this->access_token}";
-		}
 		
 		if (!isset($options[CURLOPT_TIMEOUT])) {
 			$options[CURLOPT_TIMEOUT] = 30;
@@ -237,7 +369,6 @@ class Client
 		$headers = $format_headers;
 		
 		if (!empty($headers)) {
-			dar($headers);
 			$options[CURLOPT_HTTPHEADER] = $headers;
 		}
 		
@@ -263,7 +394,7 @@ class Client
 		}
 		
 		if ($response === false) {
-			throw new Exception(curl_error($connection), curl_errno($connection), $response, $response_info);
+			throw new UserDeck\Exception(curl_error($connection), curl_errno($connection), $response, $response_info);
 		}
 		
 		// Get the response body from the request.
@@ -282,10 +413,10 @@ class Client
 				$message_parts[] = $response['message'];
 			}
 			if (empty($message_parts)) {
-				$message_parts = array('Userdeck API error.');
+				$message_parts = array('UserDeck API error.');
 			}
 			
-			throw new Exception(implode(': ', $message_parts), $response_info['http_code'], $response, $response_info);
+			throw new UserDeck\Exception(implode(': ', $message_parts), $response_info['http_code'], $response, $response_info);
 		}
 		
 		curl_close($connection);

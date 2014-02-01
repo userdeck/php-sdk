@@ -1,20 +1,17 @@
 {
     "name": "userdeck/php-sdk",
-    "description": "Userdeck PHP SDK",
-    "authors": [
-        {
-            "name": "Userdeck",
-            "homepage": "http://userdeck.com"
-        }
-    ],
+    "description": "UserDeck PHP SDK",
+    "homepage": "http://userdeck.com",
+    "keywords": ["UserDeck", "userdeck", "support", "helpdesk", "user", "deck"],
     "require": {
         "php": ">=5.3.0",
         "ext-curl": "*",
         "ext-json": "*"
     },
+    "type": "library",
     "autoload": {
         "psr-0": {
-            "Userdeck\\": "src/"
+            "UserDeck": "src/"
         }
     },
     "minimum-stability": "dev"

@@ -1,4 +1,4 @@
-<?php namespace Userdeck;
+<?php namespace UserDeck;
 
 class Exception extends \Exception
 {
