@@ -403,19 +403,18 @@ class UserDeck
 		// Make sure there were no errors with the API call.
 		if ($response_info['http_code'] >= 400) {
 			$message_parts = array();
-			if (!empty($response['error'])) {
+			if (!empty($response['error']) && is_string($response['error'])) {
 				$message_parts[] = $response['error'];
 			}
-			if (!empty($response['error_description'])) {
+			if (!empty($response['error_description']) && is_string($response['error_description'])) {
 				$message_parts[] = $response['error_description'];
 			}
-			if (!empty($response['message'])) {
+			if (!empty($response['message']) && is_string($response['message'])) {
 				$message_parts[] = $response['message'];
 			}
 			if (empty($message_parts)) {
 				$message_parts = array('UserDeck API error.');
 			}
-			
 			throw new UserDeck\Exception(implode(': ', $message_parts), $response_info['http_code'], $response, $response_info);
 		}
 		
