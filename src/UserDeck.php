@@ -5,10 +5,13 @@
  */
 class UserDeck
 {
-	public $api_url = 'https://api.userdeck.com';
+	public $api_url       = 'https://api.userdeck.com';
+	public $authorize_url = 'http://app.userdeck.com/oauth/authorize';
+	
 	protected $consumer_key;
 	protected $consumer_secret;
 	protected $access_token;
+	protected $account_id;
 	protected $session;
 	
 	/**
@@ -16,7 +19,6 @@ class UserDeck
 	 *
 	 * @param string $consumer_key
 	 * @param string $consumer_secret
-	 * @param string $api_url
 	 * 
 	 * @return UserDeck
 	 */
@@ -71,6 +73,30 @@ class UserDeck
 	}
 	
 	/**
+	 * Set the active account_id for API requests.
+	 *
+	 * @param integer $account_id
+	 * 
+	 * @return UserDeck
+	 */
+	public function setAccount($account_id)
+	{
+		$this->account_id = $account_id;
+		
+		return $this;
+	}
+	
+	/**
+	 * Get the active account_id for API requests, if set.
+	 *
+	 * @return integer|null
+	 */
+	public function getAccount()
+	{
+		return $this->account_id;
+	}
+	
+	/**
 	 * Fetch an OAuth access token.
 	 * NOTE: Only available to clients with the 'password' grant type enabled.
 	 *
@@ -84,6 +110,7 @@ class UserDeck
 	public function login($email, $password, array $options = array())
 	{
 		$this->logout();
+		$options['no_access_token'] = true;
 		
 		$token = $this->post('oauth/access_token', array(
 			'grant_type' => 'password',
@@ -106,6 +133,60 @@ class UserDeck
 	{
 		$this->session->forget('token');
 		$this->access_token = null;
+	}
+	
+	/**
+	 * Generate a redirect url to initiate an authorization code
+	 * oauth login attempt.
+	 *
+	 * @param array $options The options to use to build the redirect url.
+	 *                       - redirect_uri
+	 *                       - scope
+	 *                       - state
+	 * 
+	 * @return string
+	 */
+	public function getAuthorizationUrl(array $options = array())
+	{
+		$url = $this->authorize_url . '?client_id=' . $this->consumer_key;
+		
+		if (!empty($options['redirect_uri'])) {
+			$url .= '&redirect_uri=' . urlencode($options['redirect_uri']);
+		}
+		if (!empty($options['scope'])) {
+			$url .= '&scope=' . urlencode($options['scope']);
+		}
+		if (!empty($options['state'])) {
+			$url .= '&state=' . urlencode($options['state']);
+		}
+		
+		return $url;
+	}
+	
+	/**
+	 * Fetch an OAuth access token from an authorization code.
+	 *
+	 * @param string $code         The authorization code.
+	 * @param string $redirect_uri The endpoint associated with your client.
+	 * @param array  $options      The options to use to build the request.
+	 * 
+	 * @return UserDeck
+	 * @throws UserDeck\Exception
+	 */
+	public function loginWithCode($code, $redirect_uri, array $options = array())
+	{
+		$this->logout();
+		$options['no_access_token'] = true;
+		
+		$token = $this->post('oauth/access_token', array(
+			'grant_type'   => 'authorization_code',
+			'code'         => $code,
+			'redirect_uri' => $redirect_uri,
+		), $options);
+		
+		$this->session->put('token', $token);
+		
+		return $this;
 	}
 	
 	/**
@@ -295,6 +376,10 @@ class UserDeck
 		else if (!empty($this->consumer_key) && !empty($this->consumer_secret)) {
 			$params['client_id'] = $this->consumer_key;
 			$params['client_secret'] = $this->consumer_secret;
+		}
+		
+		if ($this->account_id) {
+			$headers['Account'] = $this->account_id;
 		}
 		
 		if (isset($options['no_access_token'])) {
