@@ -6,7 +6,7 @@
 class UserDeck
 {
 	public $api_url       = 'https://api.userdeck.com';
-	public $authorize_url = 'http://app.userdeck.com/oauth/authorize';
+	public $authorize_url = 'https://app.userdeck.com/oauth/authorize';
 	
 	protected $consumer_key;
 	protected $consumer_secret;
@@ -102,21 +102,22 @@ class UserDeck
 	 *
 	 * @param string $email    User email address.
 	 * @param string $password User password.
-	 * @param array  $options  The options to use to build the request.
+	 * @param array  $params   Optional parameters to use to build the request.
 	 * 
 	 * @return UserDeck
 	 * @throws UserDeck\Exception
 	 */
-	public function login($email, $password, array $options = array())
+	public function login($email, $password, array $params = array())
 	{
 		$this->logout();
-		$options['no_access_token'] = true;
 		
-		$token = $this->post('oauth/access_token', array(
+		$token = $this->post('oauth/access_token', array_merge(array(
 			'grant_type' => 'password',
 			'username'   => $email,
 			'password'   => $password,
-		), $options);
+		), $params), array(
+			'no_access_token' => true,
+		));
 		
 		$this->session->put('token', $token);
 		
@@ -139,14 +140,14 @@ class UserDeck
 	 * Generate a redirect url to initiate an authorization code
 	 * oauth login attempt.
 	 *
-	 * @param array $options The options to use to build the redirect url.
-	 *                       - redirect_uri
-	 *                       - scope
-	 *                       - state
+	 * @param array $params Optional parameters to use to build the redirect url.
+	 *                      - redirect_uri
+	 *                      - scope
+	 *                      - state
 	 * 
 	 * @return string
 	 */
-	public function getAuthorizationUrl(array $options = array())
+	public function getAuthorizationUrl(array $params = array())
 	{
 		$url = $this->authorize_url . '?client_id=' . $this->consumer_key;
 		
