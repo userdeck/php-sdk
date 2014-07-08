@@ -13,6 +13,7 @@ class UserDeck
 	protected $access_token;
 	protected $account_id;
 	protected $session;
+	protected $headers;
 	
 	/**
 	 * Create a new UserDeck Client.
@@ -255,6 +256,16 @@ class UserDeck
 	}
 	
 	/**
+	 * Return the headers recieved from the last API request.
+	 *
+	 * @return array|null
+	 */
+	public function getHeaders()
+	{
+		return $this->headers;
+	}
+	
+	/**
 	 * Perform a GET API request to the given resource.
 	 *
 	 * @param string $resource The API resource endpoint to call.
@@ -464,6 +475,7 @@ class UserDeck
 		$response = curl_exec($connection);
 		$response_info = curl_getinfo($connection);
 		
+		$this->headers = null;
 		$headers = array();
 		if (isset($options[CURLOPT_HEADER]) && $options[CURLOPT_HEADER]) {
 			$raw_headers = explode("\n", str_replace("\r", "", substr($response, 0, $response_info['header_size'])));
@@ -477,6 +489,8 @@ class UserDeck
 					$headers[trim($header[0])] = trim($header[1]);
 				}
 			}
+			
+			$this->headers = $headers;
 		}
 		
 		if ($response === false) {
