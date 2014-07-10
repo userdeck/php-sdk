@@ -369,7 +369,8 @@ class UserDeck
 	{
 		if (!function_exists('curl_init')) {
 			throw new UserDeck\Exception(
-				'Your PHP installation doesn\'t have cURL enabled. Rebuild PHP with --with-curl'
+				'Your PHP installation doesn\'t have cURL enabled. Rebuild PHP with --with-curl',
+				500
 			);
 		}
 		
