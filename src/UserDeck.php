@@ -152,14 +152,14 @@ class UserDeck
 	{
 		$url = $this->authorize_url . '?client_id=' . $this->consumer_key;
 		
-		if (!empty($options['redirect_uri'])) {
-			$url .= '&redirect_uri=' . urlencode($options['redirect_uri']);
+		if (!empty($params['redirect_uri'])) {
+			$url .= '&redirect_uri=' . urlencode($params['redirect_uri']);
 		}
-		if (!empty($options['scope'])) {
-			$url .= '&scope=' . urlencode($options['scope']);
+		if (!empty($params['scope'])) {
+			$url .= '&scope=' . urlencode($params['scope']);
 		}
-		if (!empty($options['state'])) {
-			$url .= '&state=' . urlencode($options['state']);
+		if (!empty($params['state'])) {
+			$url .= '&state=' . urlencode($params['state']);
 		}
 		
 		return $url;
