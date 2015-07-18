@@ -8,8 +8,8 @@ class UserDeck
 	public $api_url       = 'https://api.userdeck.com';
 	public $authorize_url = 'https://app.userdeck.com/oauth/authorize';
 	
-	protected $consumer_key;
-	protected $consumer_secret;
+	protected $client_key;
+	protected $client_secret;
 	protected $access_token;
 	protected $account_id;
 	protected $session;
@@ -18,15 +18,15 @@ class UserDeck
 	/**
 	 * Create a new UserDeck Client.
 	 *
-	 * @param string $consumer_key
-	 * @param string $consumer_secret
+	 * @param string $client_key
+	 * @param string $client_secret
 	 * 
 	 * @return UserDeck
 	 */
-	public function __construct($consumer_key = null, $consumer_secret = null)
+	public function __construct($client_key = null, $client_secret = null)
 	{
-		$this->consumer_key    = $consumer_key;
-		$this->consumer_secret = $consumer_secret;
+		$this->client_key    = $client_key;
+		$this->client_secret = $client_secret;
 		
 		$driver = new UserDeck\Cookie();
 		$driver->setPrefix('ud_');
@@ -150,7 +150,7 @@ class UserDeck
 	 */
 	public function getAuthorizationUrl(array $params = array())
 	{
-		$url = $this->authorize_url . '?client_id=' . $this->consumer_key;
+		$url = $this->authorize_url . '?client_id=' . $this->client_key;
 		
 		if (!empty($params['redirect_uri'])) {
 			$url .= '&redirect_uri=' . urlencode($params['redirect_uri']);
@@ -386,9 +386,9 @@ class UserDeck
 		if (!empty($access_token) && empty($options['no_access_token'])) {
 			$headers['Authorization'] = "Bearer {$access_token}";
 		}
-		else if (!empty($this->consumer_key) && !empty($this->consumer_secret)) {
-			$params['client_id'] = $this->consumer_key;
-			$params['client_secret'] = $this->consumer_secret;
+		else if (!empty($this->client_key) && !empty($this->client_secret)) {
+			$params['client_id'] = $this->client_key;
+			$params['client_secret'] = $this->client_secret;
 		}
 		
 		if ($this->account_id) {
