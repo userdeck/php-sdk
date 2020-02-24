@@ -152,17 +152,6 @@ class UserDeck
 	{
 		$params['response_type'] = 'code';
 		$params['client_id'] = $this->client_id;
-		
-		if (!empty($params['redirect_uri'])) {
-			$params['redirect_uri'] = urlencode($params['redirect_uri']);
-		}
-		if (!empty($params['scope'])) {
-			$params['scope'] = urlencode($params['scope']);
-		}
-		if (!empty($params['state'])) {
-			$params['state'] = urlencode($params['state']);
-		}
-		
 		return $this->authorize_url.'?'.http_build_query($params);
 	}
 	
