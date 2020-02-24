@@ -150,19 +150,20 @@ class UserDeck
 	 */
 	public function getAuthorizationUrl(array $params = array())
 	{
-		$url = $this->authorize_url . '?client_id=' . $this->client_id;
+		$params['response_type'] = 'code';
+		$params['client_id'] = $this->client_id;
 		
 		if (!empty($params['redirect_uri'])) {
-			$url .= '&redirect_uri=' . urlencode($params['redirect_uri']);
+			$params['redirect_uri'] = urlencode($params['redirect_uri']);
 		}
 		if (!empty($params['scope'])) {
-			$url .= '&scope=' . urlencode($params['scope']);
+			$params['scope'] = urlencode($params['scope']);
 		}
 		if (!empty($params['state'])) {
-			$url .= '&state=' . urlencode($params['state']);
+			$params['state'] = urlencode($params['state']);
 		}
 		
-		return $url;
+		return $this->authorize_url.'?'.http_build_query($params);
 	}
 	
 	/**
