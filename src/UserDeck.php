@@ -112,7 +112,7 @@ class UserDeck
 	{
 		$this->logout();
 		
-		$token = $this->post('oauth/access_token', array_merge(array(
+		$token = $this->post('oauth/token', array_merge(array(
 			'grant_type' => 'password',
 			'username'   => $email,
 			'password'   => $password,
@@ -170,7 +170,7 @@ class UserDeck
 		$this->logout();
 		$options['no_access_token'] = true;
 		
-		$token = $this->post('oauth/access_token', array(
+		$token = $this->post('oauth/token', array(
 			'grant_type'   => 'authorization_code',
 			'code'         => $code,
 			'redirect_uri' => $redirect_uri,
@@ -203,7 +203,7 @@ class UserDeck
 		$options['no_access_token'] = true;
 		
 		try {
-			$new_token = $this->post('oauth/access_token', array(
+			$new_token = $this->post('oauth/token', array(
 				'grant_type'    => 'refresh_token',
 				'refresh_token' => $refresh_token,
 			), $options);
