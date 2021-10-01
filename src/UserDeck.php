@@ -108,17 +108,17 @@ class UserDeck
 	 * @return UserDeck
 	 * @throws UserDeck\Exception
 	 */
-	public function login($email, $password, array $params = array())
+	public function login($email, $password, array $params = [])
 	{
 		$this->logout();
 		
-		$token = $this->post('oauth/token', array_merge(array(
+		$token = $this->post('oauth/token', array_merge([
 			'grant_type' => 'password',
 			'username'   => $email,
 			'password'   => $password,
-		), $params), array(
+		], $params), [
 			'no_access_token' => true,
-		));
+		]);
 		
 		$this->session->put('token', $token);
 		
@@ -148,7 +148,7 @@ class UserDeck
 	 * 
 	 * @return string
 	 */
-	public function getAuthorizationUrl(array $params = array())
+	public function getAuthorizationUrl(array $params = [])
 	{
 		$params['response_type'] = 'code';
 		$params['client_id'] = $this->client_id;
@@ -165,16 +165,16 @@ class UserDeck
 	 * @return UserDeck
 	 * @throws UserDeck\Exception
 	 */
-	public function loginWithCode($code, $redirect_uri, array $options = array())
+	public function loginWithCode($code, $redirect_uri, array $options = [])
 	{
 		$this->logout();
 		$options['no_access_token'] = true;
 		
-		$token = $this->post('oauth/token', array(
+		$token = $this->post('oauth/token', [
 			'grant_type'   => 'authorization_code',
 			'code'         => $code,
 			'redirect_uri' => $redirect_uri,
-		), $options);
+		], $options);
 		
 		$this->session->put('token', $token);
 		
@@ -188,7 +188,7 @@ class UserDeck
 	 * 
 	 * @return bool
 	 */
-	public function refreshLoginToken(array $options = array())
+	public function refreshLoginToken(array $options = [])
 	{
 		$token = $this->session->get('token');
 		if (!$token) {
@@ -203,10 +203,10 @@ class UserDeck
 		$options['no_access_token'] = true;
 		
 		try {
-			$new_token = $this->post('oauth/token', array(
+			$new_token = $this->post('oauth/token', [
 				'grant_type'    => 'refresh_token',
 				'refresh_token' => $refresh_token,
-			), $options);
+			], $options);
 		} catch (Exception $e) {
 			return false;
 		}
@@ -265,7 +265,7 @@ class UserDeck
 	 * @return array
 	 * @throws UserDeck\Exception
 	 */
-	public function get($resource = '', array $params = array(), array $options = array())
+	public function get($resource = '', array $params = [], array $options = [])
 	{
 		return $this->api($resource, 'get', $params, $options);
 	}
@@ -280,7 +280,7 @@ class UserDeck
 	 * @return array
 	 * @throws UserDeck\Exception
 	 */
-	public function post($resource = '', array $params = array(), array $options = array())
+	public function post($resource = '', array $params = [], array $options = [])
 	{
 		return $this->api($resource, 'post', $params, $options);
 	}
@@ -295,7 +295,7 @@ class UserDeck
 	 * @return array
 	 * @throws UserDeck\Exception
 	 */
-	public function put($resource = '', array $params = array(), array $options = array())
+	public function put($resource = '', array $params = [], array $options = [])
 	{
 		return $this->api($resource, 'put', $params, $options);
 	}
@@ -310,7 +310,7 @@ class UserDeck
 	 * @return array
 	 * @throws UserDeck\Exception
 	 */
-	public function delete($resource = '', array $params = array(), array $options = array())
+	public function delete($resource = '', array $params = [], array $options = [])
 	{
 		return $this->api($resource, 'delete', $params, $options);
 	}
@@ -326,7 +326,7 @@ class UserDeck
 	 * @return array
 	 * @throws UserDeck\Exception
 	 */
-	public function api($resource = '', $method = 'get', array $params = array(), array $options = array())
+	public function api($resource = '', $method = 'get', array $params = [], array $options = [])
 	{
 		try {
 			$response = $this->makeRequest($resource, $method, $params, $options);
@@ -355,7 +355,7 @@ class UserDeck
 	 * @return array
 	 * @throws UserDeck\Exception
 	 */
-	protected function makeRequest($resource = '', $method = 'get', array $params = array(), array $options = array())
+	protected function makeRequest($resource = '', $method = 'get', array $params = [], array $options = [])
 	{
 		if (!function_exists('curl_init')) {
 			throw new UserDeck\Exception(
@@ -368,9 +368,9 @@ class UserDeck
 		
 		$url = rtrim($this->api_url, '/') . '/' . trim($resource, '/');
 		
-		$headers = array(
+		$headers = [
 			'Accept' => 'application/json',
-		);
+		];
 		
 		$access_token = $this->getAccessToken();
 		if (!empty($access_token) && empty($options['no_access_token'])) {
@@ -448,7 +448,7 @@ class UserDeck
 				break;
 		}
 		
-		$format_headers = array();
+		$format_headers = [];
 		
 		foreach ($headers as $key => $value) {
 			$format_headers[] = is_int($key) ? $value : $key . ': ' . $value;
@@ -467,7 +467,7 @@ class UserDeck
 		$response_info = curl_getinfo($connection);
 		
 		$this->headers = null;
-		$headers = array();
+		$headers = [];
 		if (isset($options[CURLOPT_HEADER]) && $options[CURLOPT_HEADER]) {
 			$raw_headers = explode("\n", str_replace("\r", "", substr($response, 0, $response_info['header_size'])));
 			$response = $response_info['header_size'] >= strlen($response) ? '' : substr($response, $response_info['header_size']);
@@ -493,7 +493,7 @@ class UserDeck
 		
 		// Make sure there were no errors with the API call.
 		if ($response_info['http_code'] >= 400) {
-			$message_parts = array();
+			$message_parts = [];
 			if (!empty($response['error']) && is_string($response['error'])) {
 				$message_parts[] = $response['error'];
 			}
@@ -504,7 +504,7 @@ class UserDeck
 				$message_parts[] = $response['message'];
 			}
 			if (empty($message_parts)) {
-				$message_parts = array('UserDeck API error.');
+				$message_parts = ['UserDeck API error.'];
 			}
 			throw new UserDeck\Exception(implode(': ', $message_parts), $response_info['http_code'], $response, $response_info);
 		}

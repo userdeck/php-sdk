@@ -17,7 +17,7 @@ class Cookie implements SessionInterface
 	 *
 	 * @var array
 	 */
-	protected $cookies = array();
+	protected $cookies = [];
 	
 	/**
 	 * Set a session key prefix for this instance.
