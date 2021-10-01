@@ -1,7 +1,7 @@
 {
     "name": "userdeck/php-sdk",
     "description": "UserDeck PHP SDK",
-    "homepage": "http://userdeck.com",
+    "homepage": "https://userdeck.com",
     "keywords": ["UserDeck", "userdeck", "support", "helpdesk", "user", "deck"],
     "require": {
         "php": ">=5.3.0",
