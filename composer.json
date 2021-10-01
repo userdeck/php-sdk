@@ -3,6 +3,7 @@
     "description": "UserDeck PHP SDK",
     "homepage": "https://userdeck.com",
     "keywords": ["userdeck", "customer support", "customer service", "helpdesk", "knowledge base", "faq"],
+    "license": "MIT",
     "require": {
         "php": ">=5.3.0",
         "ext-curl": "*",
