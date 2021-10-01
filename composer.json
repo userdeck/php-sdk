@@ -1,5 +1,6 @@
 {
     "name": "userdeck/php-sdk",
+    "type": "library",
     "description": "UserDeck PHP SDK",
     "homepage": "https://userdeck.com",
     "keywords": ["userdeck", "customer support", "customer service", "helpdesk", "knowledge base", "faq"],
@@ -9,7 +10,6 @@
         "ext-curl": "*",
         "ext-json": "*"
     },
-    "type": "library",
     "autoload": {
         "psr-0": {
             "UserDeck": "src/"
