@@ -2,7 +2,7 @@
     "name": "userdeck/php-sdk",
     "description": "UserDeck PHP SDK",
     "homepage": "https://userdeck.com",
-    "keywords": ["UserDeck", "userdeck", "support", "helpdesk", "user", "deck"],
+    "keywords": ["userdeck", "customer support", "customer service", "helpdesk", "knowledge base", "faq"],
     "require": {
         "php": ">=5.3.0",
         "ext-curl": "*",
