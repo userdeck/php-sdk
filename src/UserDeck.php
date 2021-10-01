@@ -408,6 +408,12 @@ class UserDeck
 		
 		$connection = curl_init($url);
 		
+		if (!isset($options[CURLOPT_SSL_VERIFYHOST])) {
+			$options[CURLOPT_SSL_VERIFYHOST] = 0;
+		}
+		if (!isset($options[CURLOPT_SSL_VERIFYPEER])) {
+			$options[CURLOPT_SSL_VERIFYPEER] = 0;
+		}
 		if (!isset($options[CURLOPT_TIMEOUT])) {
 			$options[CURLOPT_TIMEOUT] = 30;
 		}
