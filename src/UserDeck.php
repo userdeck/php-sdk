@@ -171,9 +171,11 @@ class UserDeck
 		$options['no_access_token'] = true;
 		
 		$token = $this->post('oauth/token', [
-			'grant_type'   => 'authorization_code',
-			'code'         => $code,
-			'redirect_uri' => $redirect_uri,
+			'grant_type'    => 'authorization_code',
+			'client_id'     => $this->client_id,
+			'client_secret' => $this->client_secret,
+			'code'          => $code,
+			'redirect_uri'  => $redirect_uri,
 		], $options);
 		
 		$this->session->put('token', $token);
